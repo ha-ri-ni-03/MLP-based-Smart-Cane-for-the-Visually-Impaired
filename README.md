@@ -11,11 +11,11 @@ Furthermore, MLP offers an effective balance between prediction accuracy and com
 The fundamental component of the **Smart Cane** operates by measuring the distance of nearby obstacles using **sound waves**. It emits a **high-frequency sound pulse** and calculates the **time taken for the echo to return**, enabling precise obstacle detection. Objects within a range of **40 cm** are detected, allowing real-time obstacle detection and response.
 
 If an obstacle is detected within the predefined threshold distance, the system provides *multi-modal feedback* through:
-</p>
+
 - **Haptic feedback:** Vibration motor  
 - **Auditory feedback:** Buzzer  
 - **Visual indication:** LED
-  
+  </p>
 
 ## Dataset and Model Implementation
 
