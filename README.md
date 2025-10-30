@@ -1,0 +1,2 @@
+# MLP-based-Smart-Cane-for-the-Visually-Impaired
+The research presents an ML-driven, IoT-enabled smart cane equipped with sensor-based behavior analysis for real-time fall detection  and mobility assistance. The system analyzes motion patterns and sudden orientation changes that helps in detecting falls while integrating obstacle detection with multi-modal feedback namely visual, audio &amp; haptic..
