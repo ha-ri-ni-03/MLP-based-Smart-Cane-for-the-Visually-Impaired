@@ -305,3 +305,268 @@ void loop() {
   Serial.println("");
   delay(500);
 }
+
+# DataProcessing via Firebase DB
+import firebase_admin
+from firebase_admin import credentials, db
+import csv
+import time
+from google.colab import drive
+
+drive.mount('/content/drive', force_remount=True)
+url = 'https://caneconnect-a0ed2-default-rtdb.asia-southeast1.firebasedatabase.app/'
+if not firebase_admin._apps:
+    path = /content/drive/MyDrive/CaneConnect/JSON file.json
+    cred = credentials.Certificate(path)
+    firebase_admin.initialize_app(cred, {'databaseURL': url })
+print("Firebase initialized:", firebase_admin._apps)
+
+def get_sensor_data():
+    ref = db.reference('/Sensor')
+    data = ref.get()
+    print("Full Database Snapshot:", data)
+    return data if isinstance(data, dict) else None
+
+csv_file_path = "/content/drive/MyDrive/Fallevents_data.csv"
+
+try:
+    with open(csv_file_path, mode='x', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["AccX", "AccY", "AccZ", "RotX", "RotY", "RotZ"])
+except FileExistsError:
+    pass
+
+while True:
+    data = get_sensor_data()
+    print("Fetched data:", data)
+
+    if data and isinstance(data, dict):
+        try:
+            with open(csv_file_path, mode='a', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow([
+                    data.get("accX", "N/A"),
+                    data.get("accY", "N/A"),
+                    data.get("accZ", "N/A"),
+                    data.get("rotX", "N/A"),
+                    data.get("rotY", "N/A"),
+                    data.get("rotZ", "N/A")
+                ])
+            print("Data saved to CSV:", data)
+        except Exception as e:
+            print("Error writing to CSV:", e)
+
+    time.sleep(1)
+
+# Magnitude Warping Data Augmentation technique to artificially increase dataset size
+import pandas as pd
+import numpy as np
+from tsgm.models.augmentations import MagnitudeWarping
+
+from google.colab import drive
+drive.mount('/content/drive')
+
+file_path = '/content/drive/MyDrive/Nonfallevents_data.csv'
+df = pd.read_csv(file_path)
+
+columns = ['AccX', 'AccY', 'AccZ', 'RotX', 'RotY', 'RotZ']
+data = df[columns].values
+
+n_timesteps = 100  # Adjust based on your data
+n_samples = data.shape[0] 
+data = data[:n_sample*n_timesteps].reshape((n_samples,n_timesteps,len(columns)))
+
+aug_model = MagnitudeWarping()
+
+n_augmented_samples = 100  
+sigma = 0.2
+augmented_data=aug_model.generate(X=data, n_samples=n_augmented_samples,sigma=sigma)
+augmented_data=augmented_data.reshape(-1, len(columns))
+augmented_df = pd.DataFrame(augmented_data, columns=columns)
+expanded_df = pd.concat([df, augmented_df], ignore_index=True)
+expanded_file_path = '/content/drive/MyDrive/Nonfall_MDT1_dataset.csv'
+expanded_df.to_csv(expanded_file_path, index=False)
+
+print(f"Augmentation complete. Expanded dataset saved to {expanded_file_path}")
+
+# MLP training
+from google.colab import files
+uploaded = files.upload()
+import pandas as pd
+file_path = "MDT_fallDataset_MPU6050.csv"
+df = pd.read_csv(file_path)
+df.head()
+df.info()
+df.describe()
+print(df.isnull().sum())
+df.dropna(inplace=True)
+df = pd.get_dummies(df, drop_first=True)  
+X = df.drop(columns=['Prediction'])  
+y = df['Prediction']  
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+
+X = df.drop(columns=['Prediction'])   
+y = df['Prediction']
+
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+X_train, X_test, y_train, y_test = 
+train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+
+print(f"Training samples: {len(X_train)}, Testing samples: {len(X_test)}")
+
+from sklearn.neural_network import MLPClassifier
+from sklearn.metrics import accuracy_score, classification_report, 
+mlp = MLPClassifier(hidden_layer_sizes=(100,), 
+activation='relu', solver='adam', max_iter=200, random_state=42)
+mlp.fit(X_train, y_train)
+y_pred = mlp.predict(X_test)
+
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy * 100:.2f}%")
+print("Classification Report:")
+print(classification_report(y_test, y_pred))
+print("Confusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+plt.figure(figsize=(8, 5))
+sns.countplot(x=df["Prediction"], palette=["blue", "red"])
+plt.xticks([0, 1], ["Non-Fall (0)", "Fall (1)"])
+plt.xlabel("Event Type")
+plt.ylabel("Count")
+plt.title("Distribution of Fall and Non-Fall Events")
+plt.show()
+
+plt.figure(figsize=(8, 5))
+sns.scatterplot(x=df["AccX"],
+y=df["AccY"], hue=df["Prediction"], palette=["blue", "red"], alpha=0.6)
+plt.xlabel("AccX (Acceleration in X-axis)")
+plt.ylabel("AccY (Acceleration in Y-axis)")
+plt.title("Fall (1) vs Non-Fall (0) based on AccX and AccY")
+plt.legend(title="Prediction", labels=["Non-Fall (0)", "Fall (1)"])
+plt.show()
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+ Define sensor features
+features = ["AccX", "AccY", "AccZ", "RotX", "RotY", "RotZ"]
+ 
+plt.figure(figsize=(12, 8))
+for i, feature in enumerate(features, 1):
+    plt.subplot(2, 3, i)  
+    sns.boxplot(x="Prediction", y=feature, data=df, palette=["red", "blue"])
+    plt.title(f"{feature} vs Fall Events")
+
+plt.tight_layout()
+plt.show()
+import seaborn as sns
+import matplotlib.pyplot as plt
+ Filter dataset for non-fall events
+df_non_fall = df[df["Prediction"] == 0]
+
+features = ["AccX", "AccY", "AccZ", "RotX", "RotY", "RotZ"]
+
+plt.figure(figsize=(12, 8))
+for i, feature in enumerate(features, 1):
+    plt.subplot(2, 3, i)  # 2 rows, 3 columns
+    sns.boxplot(y=df_non_fall[feature], color="red")
+    plt.title(f"{feature} Distribution (Non-Fall Events)")
+plt.tight_layout()
+plt.show()
+import os
+print(os.listdir())
+
+# Live Fall Prediction mechanism
+import firebase_admin
+from firebase_admin import credentials, db
+import pandas as pd
+import numpy as np
+import pickle
+import time
+from threading import Timer
+
+from google.colab import drive
+drive.mount('/content/drive/')
+
+if not firebase_admin._apps:
+    cred = credentials.Certificate
+    ('/content/drive/MyDrive/CaneConnect/JSON file.json')
+    firebase_admin.initialize_app
+    (cred, {'databaseURL':
+    'https://caneconnect-a0ed2-default-rtdb.asia-southeast1.
+    firebasedatabase.app/'})
+    print("Firebase initialized:", firebase_admin._apps)
+else:
+  print("Firebase app is already initialized.")
+
+print("Connected to Firebase. Model and scaler loaded successfully!")
+
+with open("model.pkl", "rb") as f:
+    model = pickle.load(f)
+with open("scaler.pkl", "rb") as f:
+    scaler = pickle.load(f)
+
+def fetch_live_sensor_data():
+    ref = db.reference("Sensor")
+    sensor_data = ref.get()
+
+if sensor_data:
+ df_live = pd.DataFrame([sensor_data])
+ print("\n Live Sensor Data Fetched:")
+ print(df_live)
+
+ features = ["accX", "accY", "accZ", "rotX", "rotY", "rotZ"]
+ X_live = df_live[features].values
+ X_live_scaled = scaler.transform(X_live)
+ return X_live_scaled
+
+ print(" No sensor data available in Firebase.")
+ return None
+
+def predict_fall(X_live_scaled):
+    if X_live_scaled is not None:
+        prediction = model.predict(X_live_scaled)
+        print(f"\n Model Prediction: {prediction[0]}")
+        return prediction
+    return None
+
+alert_sent=False
+while True:
+    X_live_scaled = fetch_live_sensor_data()
+    fall_prediction = predict_fall(X_live_scaled)
+
+if fall_prediction is not None:
+  if fall_prediction[0] == 1:
+    print("\nFALL DETECTED! (High Risk)")
+        if not alert_sent:
+         sendAlert()
+         alert_sent = True
+         else:
+         print("Alert already sent. Waiting for cooldown period to end.")
+
+        else:
+         print("\nNo Fall (Safe Condition)")
+         alert_sent=False
+    time.sleep(1)
+
+# Emergency response module
+import smtplib
+message="""From: smart_cane@gmail.com
+To: caretaker_mail@gmail.com
+Subject: FALL ENCOUNTERED!!!
+
+
+
+Please look out for the individual.
+"""
+def sendAlert():
+  with smtplib.SMTP_SSL("smtp.gmail.com",465) as server:
+  server.login("smart_cane@gmail.com","xxxx xxxx zxxx zxxf")
+  server.sendmail
+ ('smart_cane@gmail.com',['caretaker_mail1@gmail.com',
+ 'caretaker_mail2@gmail.com','caretaker_mail3@gmail.com'], message)
+  print('Sent mail succesfully.')
