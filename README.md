@@ -399,7 +399,7 @@ while True:
 
     time.sleep(1)
 ```
-# Magnitude Warping Data Augmentation technique to artificially increase dataset size
+# Data Augmentation technique: Magnitude Warping 
 ```
 import pandas as pd
 import numpy as np
@@ -431,7 +431,7 @@ expanded_df.to_csv(expanded_file_path, index=False)
 
 print(f"Augmentation complete. Expanded dataset saved to {expanded_file_path}")
 ```
-# MLP training
+# MLP model training
 ```
 from google.colab import files
 uploaded = files.upload()
