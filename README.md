@@ -1,4 +1,5 @@
 # Arduino IDE code
+```
 #include <Adafruit_MPU6050.h>
 #include <WiFi.h>
 #include <TinyGPS++.h>
@@ -305,8 +306,9 @@ void loop() {
   Serial.println("");
   delay(500);
 }
-
+```
 # DataProcessing via Firebase DB
+```
 import firebase_admin
 from firebase_admin import credentials, db
 import csv
@@ -357,8 +359,9 @@ while True:
             print("Error writing to CSV:", e)
 
     time.sleep(1)
-
+```
 # Magnitude Warping Data Augmentation technique to artificially increase dataset size
+```
 import pandas as pd
 import numpy as np
 from tsgm.models.augmentations import MagnitudeWarping
@@ -388,8 +391,9 @@ expanded_file_path = '/content/drive/MyDrive/Nonfall_MDT1_dataset.csv'
 expanded_df.to_csv(expanded_file_path, index=False)
 
 print(f"Augmentation complete. Expanded dataset saved to {expanded_file_path}")
-
+```
 # MLP training
+```
 from google.colab import files
 uploaded = files.upload()
 import pandas as pd
@@ -479,8 +483,9 @@ plt.tight_layout()
 plt.show()
 import os
 print(os.listdir())
-
+```
 # Live Fall Prediction mechanism
+```
 import firebase_admin
 from firebase_admin import credentials, db
 import pandas as pd
@@ -552,8 +557,9 @@ if fall_prediction is not None:
          print("\nNo Fall (Safe Condition)")
          alert_sent=False
     time.sleep(1)
-
+```
 # Emergency response module
+```
 import smtplib
 message="""From: smart_cane@gmail.com
 To: caretaker_mail@gmail.com
@@ -570,3 +576,4 @@ def sendAlert():
  ('smart_cane@gmail.com',['caretaker_mail1@gmail.com',
  'caretaker_mail2@gmail.com','caretaker_mail3@gmail.com'], message)
   print('Sent mail succesfully.')
+```
